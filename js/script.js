@@ -1,7 +1,7 @@
 window.addEventListener("load", function () {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
-  //  loadGame();
+  loadGame();
 });
 window.addEventListener("resize", function () {
   canvas.width = window.innerWidth;
