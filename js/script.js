@@ -2,7 +2,7 @@ window.addEventListener("load", function () {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
   this.alert("Hello");
-  loadGame();
+  //loadGame();
 });
 window.addEventListener("resize", function () {
   canvas.width = window.innerWidth;
@@ -595,6 +595,7 @@ class NukedEmGame {
   }
 }
 
+alert("Hello");
 let nukedEm = new NukedEmGame();
 nukedEm.initializeGame();
 nukedEm.newGame();
