@@ -603,7 +603,7 @@ function loadGame() {
   nukedEm = new NukedEmGame();
   nukedEm.initializeGame();
   nukedEm.newGame();
-  alert("animate");
+  alert("animate...");
   animate();
 }
 
