@@ -1,14 +1,14 @@
-window.addEventListener("load", function () {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  this.alert("Hello");
-  //loadGame();
-});
-window.addEventListener("resize", function () {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  //loadGame();
-});
+// window.addEventListener("load", function () {
+//   canvas.width = window.innerWidth;
+//   canvas.height = window.innerHeight;
+//   this.alert("Hello");
+//   //loadGame();
+// });
+// window.addEventListener("resize", function () {
+//   canvas.width = window.innerWidth;
+//   canvas.height = window.innerHeight;
+//   //loadGame();
+// });
 
 const canvas = document.getElementById("canvas1");
 const ctx = canvas.getContext("2d");
@@ -466,6 +466,7 @@ class NukedEmGame {
   gameOver = false;
 
   initializeGame() {
+    alert("initialize...");
     this.shootingStar = new ShootingStar();
     this.landscape = new Landscape();
     this.landscape.createDemoLandscape();
@@ -595,17 +596,20 @@ class NukedEmGame {
   }
 }
 
-alert("Hello");
-let nukedEm = new NukedEmGame();
-nukedEm.initializeGame();
-nukedEm.newGame();
+let nukedEm;
+
+function loadGame() {
+  nukedEm = new NukedEmGame();
+  nukedEm.initializeGame();
+  nukedEm.newGame();
+  animate();
+}
 
 function animate() {
   nukedEm.run();
   requestAnimationFrame(animate);
 }
-
-animate();
+// animate();
 
 window.addEventListener("click", function () {
   nukedEm.newGame();
