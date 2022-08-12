@@ -1,3 +1,5 @@
+"use strict";
+
 window.addEventListener("load", function () {
   // canvas.width = window.innerWidth;
   // canvas.height = window.innerHeight;
@@ -49,7 +51,7 @@ const ACTIVE = 1;
 const INACTIVE = 0;
 
 class HitPhrases {
-  // hitPhrases = new Array();
+  hitPhrases = new Array();
 
   constructor() {
     this.hitPhrases.push("NICE SHOT BOB. WAY TO GO <player>.");
