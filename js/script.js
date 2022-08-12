@@ -1,9 +1,9 @@
-// window.addEventListener("load", function () {
-//   canvas.width = window.innerWidth;
-//   canvas.height = window.innerHeight;
-//   this.alert("Hello");
-//   //loadGame();
-// });
+window.addEventListener("load", function () {
+  // canvas.width = window.innerWidth;
+  // canvas.height = window.innerHeight;
+  this.alert("Hello");
+  loadGame();
+});
 // window.addEventListener("resize", function () {
 //   canvas.width = window.innerWidth;
 //   canvas.height = window.innerHeight;
