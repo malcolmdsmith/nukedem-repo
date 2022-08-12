@@ -49,7 +49,7 @@ const ACTIVE = 1;
 const INACTIVE = 0;
 
 class HitPhrases {
-  hitPhrases = [];
+  hitPhrases = new Array();
 
   constructor() {
     this.hitPhrases.push("NICE SHOT BOB. WAY TO GO <player>.");
