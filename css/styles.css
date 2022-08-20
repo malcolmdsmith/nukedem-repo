@@ -1,7 +1,106 @@
 body {
   overflow: hidden;
   background-color: black;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 #explosion-sound {
+}
+
+#controls-container {
+  display: none;
+  position: absolute;
+  left: 40%;
+  top: 15%;
+  width: 252px;
+  height: 290px;
+  border-radius: 10px;
+  background-color: #fff;
+}
+
+#header-controls {
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  padding-left: 5px;
+  padding-bottom: 5px;
+  background-color: rgb(209, 187, 187);
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+#power {
+  text-align: center;
+  margin-right: 15px;
+  background-color: red;
+  color: #fff;
+}
+
+/* #lastPower {
+  margin-left: 8px;
+  margin-top: 6px;
+} */
+
+#increasePower,
+#decreasePower,
+#increaseAngle,
+#decreaseAngle {
+  width: 25px;
+  margin-top: 8px;
+  cursor: pointer;
+}
+
+#angle {
+  text-align: center;
+  margin-right: 15px;
+  color: #000;
+}
+
+/* #lastAngle {
+  margin-top: 6px;
+  margin-left: 8px;
+} */
+
+#number-pad {
+  padding: 1px;
+}
+
+.number {
+  width: 80px;
+  height: 40px;
+  border-radius: 3px;
+  background-color: rgb(97, 139, 167);
+  color: #fff;
+}
+
+#fire {
+  width: 100%;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  color: #fff;
+}
+
+label {
+  margin: 0.6em 0.6em 0 0;
+  width: 66px;
+  padding: 0.2em;
+}
+
+input,
+select,
+textarea {
+  margin: 0.5em 0 0 0;
+  width: 60px;
+}
+
+input,
+fieldset,
+textarea,
+select {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 0.4em;
 }

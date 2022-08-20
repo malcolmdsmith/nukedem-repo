@@ -11,12 +11,46 @@
   </head>
   <body>
     <canvas id="canvas1"></canvas>
+    <div id="controls-container">
+      <div id="header-controls">
+        <div class="row">
+          <label for="power">POWER</label>
+          <input type="text" name="power" id="power" value="99.77" />
+          <span id="increasePower">⬆️</span>
+          <span id="decreasePower">⬇️</span>
+          <!-- <div id="lastPower">92.5</div> -->
+        </div>
+        <div class="row">
+          <label for="angle">ANGLE</label>
+          <input type="text" name="angle" id="angle" value="55" />
+          <span id="increaseAngle">⬆️</span>
+          <span id="decreaseAngle">⬇️</span>
+          <!-- <div id="lastAngle">45</div> -->
+        </div>
+      </div>
+      <div id="number-pad">
+        <button class="number" id="number1">1️⃣</button>
+        <button class="number" id="number2">2️⃣</button>
+        <button class="number" id="number3">3️⃣</button>
+        <button class="number" id="number4">4️⃣</button>
+        <button class="number" id="number5">5️⃣</button>
+        <button class="number" id="number6">6️⃣</button>
+        <button class="number" id="number7">7️⃣</button>
+        <button class="number" id="number8">8️⃣</button>
+        <button class="number" id="number9">9️⃣</button>
+        <button class="number" id="number0">0️⃣</button>
+        <button class="number" id="period">.</button>
+        <button class="number" id="clear">CLEAR</button>
+        <button class="number" id="fire">FIRE</button>
+      </div>
+    </div>
     <audio
       src="assets/sounds/explosion.mp3"
       id="explosion-sound"
       loop="none"
     ></audio>
-    <script src="js/script.js"></script>
+    <script src="lib/number-pad.js"></script>
+    <script src="lib/script.js"></script>
     <script>
       $(document).ready(function () {
         // alert("loading...");
