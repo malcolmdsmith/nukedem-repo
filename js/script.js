@@ -727,8 +727,8 @@ class NukedEmGame {
   }
 
   getPlayers() {
-    this.player1 = new Player("Mal", 1);
-    this.player2 = new Player("Waz", 2);
+    this.player1 = new Player("MAL", 1);
+    this.player2 = new Player("WAZ", 2);
   }
 
   demoMissiles() {

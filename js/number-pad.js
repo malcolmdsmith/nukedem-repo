@@ -4,14 +4,14 @@ const power = document.getElementById("power");
 const angle = document.getElementById("angle");
 
 power.addEventListener("click", function () {
-  power.style.backgroundColor = "rgb(255, 0, 0)";
+  power.style.backgroundColor = "rgb(0, 128, 0)";
   power.style.color = "rgb(255, 255, 255)";
   angle.style.backgroundColor = "rgb(255, 255, 255)";
   angle.style.color = "rgb(0, 0, 0)";
 });
 
 angle.addEventListener("click", function () {
-  angle.style.backgroundColor = "rgb(255, 0, 0)";
+  angle.style.backgroundColor = "rgb(0, 128, 0)";
   angle.style.color = "rgb(255, 255, 255)";
   power.style.backgroundColor = "rgb(255, 255, 255)";
   power.style.color = "rgb(0, 0, 0)";
@@ -26,7 +26,7 @@ function addNumber(num) {
 
 function getActiveControl() {
   //   console.info(window.getComputedStyle(power).backgroundColor);
-  if (window.getComputedStyle(power).backgroundColor == "rgb(255, 0, 0)")
+  if (window.getComputedStyle(power).backgroundColor == "rgb(0, 128, 0)")
     return POWER_CONTROL;
   else return ANGLE_CONTROL;
 }
