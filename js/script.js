@@ -52,7 +52,7 @@ let baseHeight = 10;
 let missileStatus = 1;
 const ACTIVE = 1;
 const INACTIVE = 0;
-const ANIMATION_LENGTH = 1000;
+const ANIMATION_LENGTH = 5000;
 
 class HitPhrases {
   hitPhrases = new Array();
