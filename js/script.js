@@ -43,7 +43,7 @@ let maxStars = 200;
 let stars = [];
 let hitPhrases = [];
 let time = 0;
-let timerInterval = 0.05;
+let timerInterval = 0.1;
 let gameFrame = 0;
 const staggerFrames = 155;
 let windVelocity = 100;
@@ -52,6 +52,7 @@ let baseHeight = 10;
 let missileStatus = 1;
 const ACTIVE = 1;
 const INACTIVE = 0;
+const ANIMATION_LENGTH = 1000;
 
 class HitPhrases {
   hitPhrases = new Array();
@@ -301,6 +302,25 @@ class Landscape {
     return this.nukedEmBases.filter((f) => f.baseStatus == HIT)[0];
   }
 
+  areAllBasesDestroyed() {
+    let player1bases = this.nukedEmBases.filter(
+      (f) => f.player == 1 && f.baseStatus == DESTROYED
+    );
+    let player2bases = this.nukedEmBases.filter(
+      (f) => f.player == 2 && f.baseStatus == DESTROYED
+    );
+
+    console.info("count:", player1bases.length, player2bases.length);
+
+    if (
+      player1bases.length == this.nukedEmBaseTypes.length ||
+      player2bases.length == this.nukedEmBaseTypes.length
+    )
+      return true;
+
+    return false;
+  }
+
   checkMinimumDistanceBetweenBases(x, player) {
     //   const bases = this.nukedEmBases.filter((base) => (base.player = player));
 
@@ -344,6 +364,7 @@ class Landscape {
     ctx.lineTo(0, canvas.height);
     ctx.fill();
     this.drawBases();
+    this.drawPlayerNames();
   }
   drawBases() {
     this.nukedEmBases.forEach((base) => {
@@ -366,22 +387,23 @@ class Landscape {
     });
   }
 
-  updateScore() {
-    // console.info(this.nukedEmBases);
+  getScoreForPlayer(player) {
+    let opponentsBase = player == 1 ? 2 : 1;
+
     let hits = this.nukedEmBases.filter(
-      (f) => f.player == 2 && f.baseStatus == DESTROYED
+      (f) => f.player == opponentsBase && f.baseStatus == DESTROYED
     );
     // console.info(hits);
-    let player1Score = hits
-      .map((hit) => hit.points)
-      .reduce((partialsum, a) => partialsum + a, 0);
-    hits = this.nukedEmBases.filter(
-      (f) => f.player == 1 && f.baseStatus == DESTROYED
-    );
-    let player2Score = hits
+    let score = hits
       .map((hit) => hit.points)
       .reduce((partialsum, a) => partialsum + a, 0);
 
+    return score;
+  }
+
+  updateScore() {
+    const player1Score = this.getScoreForPlayer(1);
+    const player2Score = this.getScoreForPlayer(2);
     let text = "Score " + player1Score + ":" + player2Score;
     const width = ctx.measureText(text).width;
     ctx.fillStyle = "black";
@@ -397,6 +419,16 @@ class Landscape {
     console.info("playing sound...");
     const base = this.nukedEmBases.filter((f) => f.baseStatus == HIT)[0];
     // console.info(base);
+    ctx.beginPath();
+    ctx.fillStyle = "black";
+    ctx.arc(
+      base.X + baseWidth / 2,
+      base.Y,
+      baseWidth / 2,
+      1 * Math.PI,
+      0 * Math.PI
+    );
+    ctx.fill();
     ctx.drawImage(
       mushroomCloud,
       base.X - mushroomCloud.width / 2,
@@ -406,7 +438,7 @@ class Landscape {
     );
     ctx.drawImage(
       holeInGround,
-      base.X - mushroomCloud.width / 2,
+      base.X - holeInGround.width / 2,
       base.Y,
       50,
       20
@@ -437,6 +469,23 @@ class Landscape {
         white_missile.height / 3
       );
     }
+  }
+
+  drawPlayerNames() {
+    ctx.fillStyle = "black";
+    ctx.font = "36px Arial";
+    ctx.fillText(nukedEm.player1.playerName, 30, canvas.height - 80);
+    ctx.fillStyle = "white";
+    ctx.fillText(nukedEm.player1.playerName, 28, canvas.height - 82);
+
+    const text = nukedEm.player2.playerName;
+    const width = ctx.measureText(text).width;
+
+    ctx.fillStyle = "black";
+    ctx.font = "36px Arial";
+    ctx.fillText(text, canvas.width - width - 40, canvas.height - 80);
+    ctx.fillStyle = "white";
+    ctx.fillText(text, canvas.width - width - 42, canvas.height - 82);
   }
 
   drawMissMarkers(player1, player2) {
@@ -498,17 +547,22 @@ class Background {
     setTimeout(function () {
       clearInterval(interval);
       setUpScreen();
-    }, 5000);
+    }, ANIMATION_LENGTH);
   }
 
-  doGameOver(player1, player2) {
+  doGameOver(landscape) {
     let text = "";
 
-    if (player1.score == player2.score) {
+    const player1Score = landscape.getScoreForPlayer(1);
+    const player2Score = landscape.getScoreForPlayer(2);
+
+    if (player1Score == player2Score) {
       text = "GAME OVER, DRAW!!!";
     } else {
       const winner =
-        player1.score > player2.score ? player1.playerName : player2.playerName;
+        player1Score > player2Score
+          ? nukedEm.player1.playerName
+          : nukedEm.player2.playerName;
 
       text = "GAME OVER, WELL DONE " + winner + "!!!";
     }
@@ -706,11 +760,11 @@ class NukedEmGame {
 
   initializeGame() {
     this.shootingStar = new ShootingStar();
+    this.getPlayers();
     this.landscape = new Landscape();
     this.background = new Background();
     this.background.loadStars();
     this.background.draw(this.landscape);
-    this.getPlayers();
   }
 
   alternateTurn() {
@@ -782,7 +836,9 @@ class NukedEmGame {
     this.background.hitAnimation(
       () => {
         this.drawScreen();
-        this.showPowerAnglePad("block");
+        this.isGameOver();
+        this.missileStatus = INACTIVE;
+        if (!this.gameOver) this.showPowerAnglePad("block");
       },
       playerName,
       opponentName
@@ -794,6 +850,16 @@ class NukedEmGame {
     // this.alternateTurn();
   }
 
+  isGameOver() {
+    if (this.player1.missileCount == 0 && this.player2.missileCount == 0) {
+      this.gameOver = true;
+      return;
+    } else if (this.landscape.areAllBasesDestroyed()) {
+      this.gameOver = true;
+      return;
+    }
+  }
+
   nextMissile(power, angle) {
     console.info("nextMissile...");
     this.showPowerAnglePad("none");
@@ -802,11 +868,6 @@ class NukedEmGame {
     if (this.demoMode) {
       //this.demoMissiles();
       // return;
-    }
-
-    if (this.player1.missileCount == 0 && this.player2.missileCount == 0) {
-      this.gameOver = true;
-      return;
     }
 
     if (this.playersTurn == 1) {
@@ -838,12 +899,12 @@ class NukedEmGame {
       this.player2.missileCount
     );
     this.landscape.drawMissMarkers(this.player1, this.player2);
-    this.landscape.updateScore(this.player1.score, this.player2.score);
-    if (this.gameOver) this.background.doGameOver(this.player1, this.player2);
+    this.landscape.updateScore();
+    if (this.gameOver) this.background.doGameOver(this.landscape);
   }
 
   run() {
-    // console.info("missileStatus...", missileStatus);
+    // console.info("missileStatus...", missileStatus, this.gameOver);
     if (missileStatus == ACTIVE) {
       // console.info("RUN...");
       this.drawScreen();
@@ -854,9 +915,7 @@ class NukedEmGame {
         case HIT:
           console.info("explosion");
           this.doHit();
-          missileStatus = HIT;
-          //this.newGame();
-          // this.showPowerAnglePad("block");
+          missileStatus = INACTIVE;
           this.alternateTurn();
           break;
         case MISS:

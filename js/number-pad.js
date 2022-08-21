@@ -20,8 +20,8 @@ angle.addEventListener("click", function () {
 function addNumber(num) {
   const control = getActiveControl();
   console.info(control);
-  if (control == POWER_CONTROL) power.value += num;
-  else angle.value += num;
+  if (control == POWER_CONTROL) power.innerText += num;
+  else angle.innerText += num;
 }
 
 function getActiveControl() {
@@ -99,33 +99,33 @@ period.addEventListener("click", function () {
 
 const fire = document.getElementById("fire");
 fire.addEventListener("click", function () {
-  console.info("Power : Angle - ", power.value, angle.value);
-  nukedEm.nextMissile(power.value, angle.value);
+  console.info("Power : Angle - ", power.innerText, angle.innerText);
+  nukedEm.nextMissile(power.innerText, angle.innerText);
 });
 
 const clear = document.getElementById("clear");
 clear.addEventListener("click", function () {
   const control = getActiveControl();
-  if (control == POWER_CONTROL) power.value = "";
-  else angle.value = "";
+  if (control == POWER_CONTROL) power.innerText = "";
+  else angle.innerText = "";
 });
 
 const increasePower = document.getElementById("increasePower");
 increasePower.addEventListener("click", function () {
-  power.value = (parseFloat(power.value) + 0.01).toFixed(2);
+  power.innerText = (parseFloat(power.innerText) + 0.01).toFixed(2);
 });
 
 const decreasePower = document.getElementById("decreasePower");
 decreasePower.addEventListener("click", function () {
-  power.value = (parseFloat(power.value) - 0.01).toFixed(2);
+  power.innerText = (parseFloat(power.innerText) - 0.01).toFixed(2);
 });
 
 const increaseAngle = document.getElementById("increaseAngle");
 increaseAngle.addEventListener("click", function () {
-  angle.value = parseInt(angle.value) + 1;
+  angle.innerText = parseInt(angle.innerText) + 1;
 });
 
 const decreaseAngle = document.getElementById("decreaseAngle");
 decreaseAngle.addEventListener("click", function () {
-  angle.value = parseInt(angle.value) - 1;
+  angle.innerText = parseInt(angle.innerText) - 1;
 });
