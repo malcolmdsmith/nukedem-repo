@@ -188,8 +188,8 @@ class Landscape {
   }
 
   createDemoLandscape() {
-    this.base1Y = 540;
-    this.base2Y = 540;
+    this.base1Y = 500;
+    this.base2Y = 500;
     this.mountainX = canvas.width / 2;
     const h = this.base1Y < this.base2Y ? this.base1Y : this.base2Y;
     this.mountainY = 300;
