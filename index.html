@@ -44,13 +44,24 @@
         <button class="number" id="fire">FIRE</button>
       </div>
     </div>
+    <div id="players-container">
+      <div>
+        <label for="player1">Player 1</label>
+        <input name="player1" id="player1" class="player-name" value="MAL" />
+      </div>
+      <div>
+        <label for="player2">Player 2</label>
+        <input name="player2" id="player2" class="player-name" value="WAZ" />
+      </div>
+      <button id="start">PLAY</button>
+    </div>
     <audio
       src="assets/sounds/explosion.mp3"
       id="explosion-sound"
       loop="none"
     ></audio>
-    <script src="js/number-pad.js"></script>
-    <script src="js/script.js"></script>
+    <script src="lib/number-pad.js"></script>
+    <script src="lib/script.js"></script>
     <script>
       $(document).ready(function () {
         // alert("loading...");
