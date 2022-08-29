@@ -1,0 +1,7 @@
+canvas {
+  border: 1px solid red;
+  margin: 0 auto;
+}
+p {
+  min-height: 1.5em;
+}

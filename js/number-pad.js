@@ -3,6 +3,9 @@ const ANGLE_CONTROL = 2;
 const power = document.getElementById("power");
 const angle = document.getElementById("angle");
 
+let clear_power_values = false;
+let clear_angle_values = false;
+
 power.addEventListener("click", function () {
   power.style.backgroundColor = "rgb(0, 128, 0)";
   power.style.color = "rgb(255, 255, 255)";
@@ -20,8 +23,15 @@ angle.addEventListener("click", function () {
 function addNumber(num) {
   const control = getActiveControl();
   console.info(control);
-  if (control == POWER_CONTROL) power.innerText += num;
-  else angle.innerText += num;
+  if (control == POWER_CONTROL) {
+    if (clear_power_values) power.innerText = "";
+    power.innerText += num;
+    clear_power_values = false;
+  } else {
+    if (clear_angle_values) angle.innerText = "";
+    angle.innerText += num;
+    clear_angle_values = false;
+  }
 }
 
 function getActiveControl() {
@@ -99,7 +109,6 @@ period.addEventListener("click", function () {
 
 const fire = document.getElementById("fire");
 fire.addEventListener("click", function () {
-  console.info("Power : Angle - ", power.innerText, angle.innerText);
   nukedEm.nextMissile(power.innerText, angle.innerText);
 });
 

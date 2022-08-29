@@ -26,10 +26,11 @@ deathStar.src = "assets/images/deathStar2.png";
 let white_missile = new Image();
 white_missile.src = "assets/images/white-missile.png";
 const MISSILE_SCALE = 6;
-let mushroomCloud = new Image();
-mushroomCloud.src = "assets/images/mushroomCloud.png";
+// let flames = new Image();
+// flames.src = "assets/images/flames.gif";
 let holeInGround = new Image();
 holeInGround.src = "assets/images/holeInground.png";
+const flames = document.getElementById("flames");
 
 const MISS = 1;
 const HIT = 2;
@@ -41,23 +42,21 @@ const AWAITING_FIRE = 6;
 const ACTIVE = 1;
 const INACTIVE = 0;
 
-const ANIMATION_LENGTH = 5000;
+const ANIMATION_LENGTH = 8000;
 
 const MINIMUM_BASE_DISTANCE = 80;
 
-let maxStars = 200;
+const BASEWIDTH = 20;
+
+let maxStars = 300;
 let stars = [];
 let hitPhrases = [];
 let time = 0;
-let timerInterval = 0.1;
+let timerInterval = 0.04;
 let gameFrame = 0;
 const staggerFrames = 155;
 let windVelocity = 100;
-let baseWidth = 20;
-let baseHeight = 10;
 let missileStatus = 1;
-let player1;
-let player2;
 
 class HitPhrases {
   hitPhrases = new Array();
@@ -70,10 +69,8 @@ class HitPhrases {
     this.hitPhrases.push("CRACK SHOT, ACE!");
     this.hitPhrases.push("NICE SHOT! GO TEAM <player>.");
     this.hitPhrases.push("ALRIGHT!!!!!!");
-    this.hitPhrases.push("DO YOU NEED GLASSES <opponent>?");
     this.hitPhrases.push("TOP GUN HEY!");
     this.hitPhrases.push("WISE GUY, HUH!");
-    this.hitPhrases.push("WHERE'D YOU LEARN TO SHOOT <opponent>?");
   }
 
   getPhrase(player, opponent) {
@@ -89,24 +86,53 @@ class HitPhrases {
 }
 
 class ShootingStar {
-  constructor() {
+  x;
+  y;
+  direction;
+  trail;
+  timeTolive;
+  colors = [];
+  color;
+  constructor(num) {
     this.x = Math.random() * canvas.width;
     this.y = 0;
-    this.speed = Math.random() * 4 - 2;
+    this.direction = num;
+    this.colors[0] = "red";
+    this.colors[1] = "white";
+    this.colors[2] = "yellow";
+    this.colors[3] = "green";
+    this.init();
+  }
+  init() {
+    this.trail = getRandomInt(20, 100);
+    this.timeTolive = getRandomInt(300, 700);
+    this.color = this.colors[getRandomInt(1, 4) - 1];
   }
   update() {
-    if (this.x < 0 || this.y > canvas.height + 100) {
+    if (this.x < 0 || this.y > canvas.height + 20 || this.timeTolive == 0) {
       this.x = Math.random() * canvas.width;
-      this.y = -10;
-      this.speed = Math.random() * 4 - 2;
+      this.y = getRandomInt(-10, 100);
+      this.init();
     } else {
-      this.x += this.speed;
-      this.y += 1;
+      this.x += 1 * this.direction;
+      this.y += getRandomInt(1, 2);
+      this.timeTolive -= 1;
     }
   }
   draw() {
-    ctx.fillStyle = "yellow";
-    ctx.fillRect(this.x, this.y, 2, 2);
+    const grad = ctx.createLinearGradient(
+      this.x,
+      this.y,
+      this.x + this.trail * this.direction,
+      this.y + this.trail
+    );
+    grad.addColorStop(0, "black");
+    grad.addColorStop(1, this.color);
+    ctx.strokeStyle = grad;
+    ctx.beginPath();
+    ctx.moveTo(this.x, this.y);
+    ctx.lineTo(this.x + this.trail * this.direction, this.y + this.trail);
+    ctx.stroke();
   }
 }
 
@@ -159,7 +185,7 @@ class Landscape {
 
   constructor() {
     this.createBaseTypes();
-    this.createLandscape();
+    this.createDemoLandscape();
     // this.createBases();
   }
 
@@ -194,8 +220,9 @@ class Landscape {
   }
 
   createDemoLandscape() {
-    this.base1Y = 500;
-    this.base2Y = 500;
+    const height = canvas.height * 0.8;
+    this.base1Y = height;
+    this.base2Y = height;
     this.mountainX = canvas.width / 2;
     const h = this.base1Y < this.base2Y ? this.base1Y : this.base2Y;
     this.mountainY = 300;
@@ -377,14 +404,20 @@ class Landscape {
       // console.info(base.X, base.Y, base.fillColor);
 
       if (base.baseStatus == DESTROYED) {
-        ctx.drawImage(holeInGround, base.X + baseWidth / 2, base.Y, 50, 20);
+        ctx.drawImage(
+          holeInGround,
+          base.X - holeInGround.width / 2,
+          base.Y,
+          50,
+          20
+        );
       } else {
         ctx.beginPath();
         ctx.fillStyle = base.fillColor;
         ctx.arc(
-          base.X + baseWidth / 2,
+          base.X, // + BASEWIDTH / 2,
           base.Y,
-          baseWidth / 2,
+          BASEWIDTH / 2,
           1 * Math.PI,
           0 * Math.PI
         );
@@ -419,7 +452,7 @@ class Landscape {
     ctx.fillText(text, canvas.width / 2 - width / 2 - 2, canvas.height - 42);
   }
 
-  drawExplosion() {
+  async drawExplosion() {
     const sound = document.getElementById("explosion-sound");
     //sound.play();
     console.info("playing sound...");
@@ -427,21 +460,10 @@ class Landscape {
     // console.info(base);
     ctx.beginPath();
     ctx.fillStyle = "black";
-    ctx.arc(
-      base.X + baseWidth / 2,
-      base.Y,
-      baseWidth / 2,
-      1 * Math.PI,
-      0 * Math.PI
-    );
+    ctx.arc(base.X, base.Y, BASEWIDTH / 2, 1 * Math.PI, 0 * Math.PI);
     ctx.fill();
-    ctx.drawImage(
-      mushroomCloud,
-      base.X - mushroomCloud.width / 2,
-      base.Y - 78,
-      57,
-      78
-    );
+    // ctx.drawImage(flames, base.X - 25, base.Y - 58, 50, 58);
+
     ctx.drawImage(
       holeInGround,
       base.X - holeInGround.width / 2,
@@ -449,14 +471,26 @@ class Landscape {
       50,
       20
     );
+
+    flames.style.top = base.Y - 58 + "px";
+    flames.style.left = base.X - 25 + "px";
+    //console.info(flames.style.display);
+    flames.style.display = "inline";
+    let result = await this.explosionPause(3000);
+    flames.style.display = "none";
+
     base.baseStatus = DESTROYED;
   }
 
-  drawBaseMissiles(player1Missiles, player2Missiles) {
+  explosionPause(timeout) {
+    return new Promise((resolve) => setTimeout(resolve, timeout));
+  }
+
+  drawBaseMissiles() {
+    if (!player1 && !player2) return;
     let y = canvas.height - 70;
     let x = 5;
-
-    for (let i = 1; i <= player1Missiles; i++) {
+    for (let i = 1; i <= player1.missileCount; i++) {
       ctx.drawImage(
         white_missile,
         x + i * 15,
@@ -466,7 +500,7 @@ class Landscape {
       );
     }
     x = canvas.width - 30;
-    for (let i = 1; i <= player2Missiles; i++) {
+    for (let i = 1; i <= player2.missileCount; i++) {
       ctx.drawImage(
         white_missile,
         x - i * 15,
@@ -478,6 +512,8 @@ class Landscape {
   }
 
   drawPlayerNames() {
+    if (!player1 && !player2) return;
+
     ctx.fillStyle = "black";
     ctx.font = "36px Arial";
     ctx.fillText(player1.playerName, 30, canvas.height - 80);
@@ -495,6 +531,8 @@ class Landscape {
   }
 
   drawMissMarkers() {
+    if (!player1 && !player2) return;
+
     ctx.fillStyle = "white";
     player1.missiles.forEach((missile) => {
       ctx.fillRect(missile.missX, missile.missY - 2, 2, 4);
@@ -506,6 +544,13 @@ class Landscape {
 }
 
 class Background {
+  shootingStars = [];
+
+  constructor() {
+    this.loadStars();
+    this.loadShootingStars();
+  }
+
   loadStars() {
     for (let i = 0; i < maxStars; i++) {
       stars.push({
@@ -515,6 +560,20 @@ class Background {
         height: Math.random() * 3,
       });
     }
+  }
+
+  loadShootingStars() {
+    let star = new ShootingStar(1);
+    this.shootingStars.push(star);
+    star = new ShootingStar(-1);
+    this.shootingStars.push(star);
+  }
+
+  drawShootingStars() {
+    this.shootingStars.forEach((star) => {
+      star.update();
+      star.draw();
+    });
   }
 
   draw(landscape) {
@@ -531,13 +590,13 @@ class Background {
     ctx.drawImage(moon, 220, 45, 38, 32);
     landscape.draw();
   }
+
   hitAnimation(drawScreen, player, opponent) {
     let r, g, b;
-    console.info("anim");
+    console.info("anim", player, opponent);
     let phrases = new HitPhrases();
-    let text = phrases.getPhrase(drawScreen, player, opponent);
+    let text = phrases.getPhrase(player, opponent);
     const interval = setInterval(function () {
-      console.info("color", canvas.width, canvas.height);
       r = Math.random() * 255;
       g = Math.random() * 255;
       b = Math.random() * 255;
@@ -584,6 +643,8 @@ class Background {
 class Missile {
   missileX = 0;
   missileY = 0;
+  prevX = 0;
+  prevY = 0;
   power = 0;
   angle = 0;
   startX = 0;
@@ -597,14 +658,27 @@ class Missile {
     time = 0;
     missileStatus = ACTIVE;
     this.playerTurn = player;
-    this.startX = player == 1 ? x + baseWidth : x - baseWidth;
-    this.startY = y - black_missile.height / 4;
+    this.startX = x; //player == 1 ? x + BASEWIDTH : x - BASEWIDTH;
+    this.startY = y - white_missile.height / MISSILE_SCALE;
     this.power = power;
     this.angle = angle;
     this.rotation = 0;
     this.missileId = id;
   }
-  update() {
+  update(landscape) {
+    // console.info(
+    //   "PX:PY  X:Y  ",
+    //   this.prevX,
+    //   this.prevY,
+    //   this.missileX,
+    //   this.missileY,
+    //   landscape.nukedEmBases[3].X,
+    //   landscape.nukedEmBases[3].Y,
+    //   canvas.width
+    // );
+    this.prevX = this.missileX;
+    this.prevY = this.missileY;
+
     let rad = this.angle * (Math.PI / 180);
 
     let vx = this.power * Math.cos(rad);
@@ -615,12 +689,15 @@ class Missile {
 
     let x = vx * time;
 
-    if (this.playerTurn == 1)
+    if (this.playerTurn == 1) {
       this.missileX = Math.floor(this.startX + x - vxWindVelocity);
-    else this.missileX = Math.floor(this.startX - x - vxWindVelocity);
+    } else {
+      this.missileX = Math.floor(this.startX - x - vxWindVelocity);
+    }
 
     let y = vy * time + 0.5 * -9.8 * Math.pow(time, 2);
     this.missileY = Math.floor(this.startY - y - vyWindVelocity);
+
     this.calcRotation(vx, rad);
   }
 
@@ -647,36 +724,23 @@ class Missile {
     else if (this.playerTurn == 1 && this.missileX > canvas.width)
       return OUT_OF_BOUNDS;
 
-    let base;
+    //Has missile hit the mountain
+    if (this.isMountainHit(landscape)) return MISS;
 
+    let base;
     for (let i = 0; i < landscape.nukedEmBases.length; i++) {
       base = landscape.nukedEmBases[i];
-      // if (this.missileId == 1 && base.fillColor == "red" && base.player == 2) {
-      //   console.info(
-      //     this.missileX,
-      //     this.missileY,
-      //     " = ",
-      //     base.X,
-      //     base.X2,
-      //     base.Y,
-      //     base.Y2
-      //   );
-      //   //if (this.missileY > base.Y + 60) return HIT;
-      // }
-      if (
-        (this.missileY + white_missile.height / MISSILE_SCALE < base.Y ||
-          this.missileY > base.Y + baseHeight ||
-          this.missileX + white_missile.width / MISSILE_SCALE < base.X ||
-          this.missileX > base.X + white_missile.width / MISSILE_SCALE) == false
-      ) {
-        // if (
-        //   this.missileX >= base.X &&
-        //   this.missileX <= base.X2 &&
-        //   this.missileY >= base.Y2
-        // ) {
-        base.baseStatus = HIT;
-        console.info("HIT");
-        return HIT;
+
+      if (base.baseStatus != DESTROYED) {
+        const path = new Path2D();
+        path.moveTo(this.prevX, this.prevY);
+        path.lineTo(this.missileX, this.missileY);
+        path.closePath();
+        const baseData = { radius: BASEWIDTH / 2, x: base.X, y: base.Y };
+        if (this.isBaseInPath(baseData, path)) {
+          base.baseStatus = HIT;
+          return HIT;
+        }
       }
     }
 
@@ -684,10 +748,9 @@ class Missile {
       case 1:
         if (
           this.missileX > landscape.mountainX &&
-          this.missileY >
-            landscape.base2Y - white_missile.height / MISSILE_SCALE
+          this.missileY > landscape.base2Y //    white_missile.height / MISSILE_SCALE
         ) {
-          this.missX = this.missileX + white_missile.width / MISSILE_SCALE;
+          this.missX = this.missileX; // + white_missile.width / MISSILE_SCALE;
           this.missY = landscape.base2Y;
           return MISS;
         }
@@ -695,10 +758,9 @@ class Missile {
       case 2:
         if (
           this.missileX < landscape.mountainX &&
-          this.missileY >
-            landscape.base1Y - white_missile.height / MISSILE_SCALE
+          this.missileY > landscape.base1Y //- white_missile.height / MISSILE_SCALE
         ) {
-          this.missX = this.missileX - white_missile.width / MISSILE_SCALE;
+          this.missX = this.missileX; // - white_missile.width / MISSILE_SCALE;
           this.missY = landscape.base1Y;
           return MISS;
         }
@@ -708,7 +770,80 @@ class Missile {
     return NO_HIT;
   }
 
+  isBaseInPath(baseData, path) {
+    const radius = baseData.radius;
+    for (
+      let x = baseData.x - radius;
+      x <= baseData.x + 2 * radius;
+      x += 1 //radius
+    ) {
+      for (
+        let y = baseData.y - radius;
+        y <= baseData.y + 2 * radius;
+        y += 1 //radius
+      ) {
+        // console.info("x:", x, " y:", y);
+        if (ctx.isPointInPath(path, x, y)) return true;
+      }
+    }
+    return false;
+  }
+
+  isMountainHit(landscape) {
+    if (this.prevX == 0) return false;
+
+    if (
+      this.doesLineCrossLine(
+        this.prevX,
+        this.prevY,
+        this.missileX,
+        this.missileY,
+        landscape.mountainX - landscape.mountainWidth / 2,
+        landscape.base1Y,
+        landscape.mountainX,
+        landscape.mountainY
+      )
+    ) {
+      return true;
+    }
+
+    if (
+      this.doesLineCrossLine(
+        this.prevX,
+        this.prevY,
+        this.missileX,
+        this.missileY,
+        landscape.mountainX,
+        landscape.mountainY,
+        landscape.mountainX + landscape.mountainWidth / 2,
+        landscape.base2Y
+      )
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
+  doesLineCrossLine(x1, y1, x2, y2, x3, y3, x4, y4) {
+    const uA =
+      ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) /
+      ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1));
+    const uB =
+      ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) /
+      ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1));
+
+    // if uA and uB are between 0-1, lines are colliding
+    if (uA >= 0 && uA <= 1 && uB >= 0 && uB <= 1) {
+      return true;
+    }
+    return false;
+  }
+
   drawPath() {
+    // ctx.fillStyle = "yellow";
+    // ctx.fillRect(this.missileX, this.missileY, 2, 2);
+    // return;
     drawRotatedImage(
       white_missile,
       this.missileX,
@@ -722,11 +857,13 @@ class Missile {
 
 function drawRotatedImage(image, x, y, w, h, degrees) {
   ctx.save();
-  ctx.translate(x + w / 2, y + h / 2);
+  //  ctx.translate(x + w / 2, y + h / 2);
+  ctx.translate(x, y);
   ctx.rotate((degrees * Math.PI) / 180.0);
   ctx.translate(-x - w / 2, -y - h / 2);
   ctx.drawImage(image, x, y, w, h);
-  ctx.strokeStyle = "yellow";
+  // ctx.fillStyle = "red";
+  // ctx.fillRect(x, y, 2, 2);
   ctx.lineWidth = 1;
   // ctx.strokeRect(x, y, w, h);
   ctx.restore();
@@ -759,14 +896,14 @@ class NukedEmGame {
   gameOver = false;
   numMissiles = 0;
   demoMode = true;
+  landscape = new Landscape();
+  background = new Background();
 
   initializeGame() {
-    this.shootingStar = new ShootingStar();
+    animate();
     this.getPlayers();
-    this.landscape = new Landscape();
-    this.background = new Background();
-    this.background.loadStars();
     this.background.draw(this.landscape);
+    this.landscape.drawBaseMissiles();
   }
 
   newGame() {
@@ -775,12 +912,12 @@ class NukedEmGame {
     missileStatus = ACTIVE;
     //this.fireMissile(99.9, 60, 0);
     // this.showPowerAnglePad("block");
-    animate();
+    // animate();
   }
 
   getPlayers() {
-    player1 = new Player("", 1);
-    player2 = new Player("", 2);
+    // player1 = new Player("", 1);
+    // player2 = new Player("", 2);
 
     const start = document.getElementById("start");
     start.addEventListener("click", function () {
@@ -809,6 +946,8 @@ class NukedEmGame {
 
   showPowerAnglePad(display) {
     // console.info("getPowerAngle....", this.playersTurn);
+    clear_power_values = true;
+    clear_angle_values = true;
     const controls = document.getElementById("controls-container");
     controls.style.display = display;
     if (this.playersTurn == 1) controls.style.left = "100px";
@@ -833,7 +972,7 @@ class NukedEmGame {
       this.missile = new Missile(
         1,
         this.landscape.getMissileBaseX(1),
-        this.landscape.base1Y - 10,
+        this.landscape.base1Y,
         power,
         angle,
         id
@@ -845,7 +984,7 @@ class NukedEmGame {
       this.missile = new Missile(
         2,
         this.landscape.getMissileBaseX(2),
-        this.landscape.base2Y - 10,
+        this.landscape.base2Y,
         power,
         angle,
         id
@@ -862,40 +1001,27 @@ class NukedEmGame {
       base.player == 1 ? player1.playerName : player2.playerName;
 
     this.showPowerAnglePad("none");
+    // const interval = setInterval(() => {
+    // }, 3000)
+
     this.landscape.drawExplosion();
-    this.background.hitAnimation(
-      () => {
-        this.drawScreen();
-        this.isGameOver();
-        this.missileStatus = INACTIVE;
-        if (!this.gameOver) this.showPowerAnglePad("block");
-      },
-      playerName,
-      opponentName
-    );
+    var that = this;
+    setTimeout(function () {
+      //  clearInterval(interval);
+      that.background.hitAnimation(
+        () => {
+          that.drawScreen();
+          that.isGameOver();
+          missileStatus = INACTIVE;
+          if (!that.gameOver) that.showPowerAnglePad("block");
+        },
+        playerName,
+        opponentName
+      );
+    }, 3000);
+
     this.landscape.drawBaseMissiles(player1.missiles, player2.missiles);
-    // this.alternateTurn();
   }
-
-  // async doHit() {
-  //   const base = this.landscape.determineBaseHit();
-  //   const playerName =
-  //     base.player == 1 ? player2.playerName : player1.playerName;
-  //   const opponentName =
-  //     base.player == 1 ? player1.playerName : player2.playerName;
-
-  //   // ctx.fillStyle = `red`;
-  //   // ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  //   this.showPowerAnglePad("none");
-  //   this.landscape.drawExplosion();
-  //   this.background.hitAnimation(this.drawScreen, playerName, opponentName);
-  //   // this.drawScreen();
-  //   this.isGameOver();
-  //   this.missileStatus = INACTIVE;
-  //   if (!this.gameOver) this.showPowerAnglePad("block");
-  //   this.landscape.drawBaseMissiles(player1.missiles, player2.missiles);
-  // }
 
   isGameOver() {
     if (player1.missileCount == 0 && player2.missileCount == 0) {
@@ -908,7 +1034,6 @@ class NukedEmGame {
   }
 
   nextMissile(power, angle) {
-    console.info("nextMissile...");
     this.showPowerAnglePad("none");
     missileStatus = ACTIVE;
 
@@ -930,17 +1055,18 @@ class NukedEmGame {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    this.shootingStar.update();
-    this.shootingStar.draw();
     this.background.draw(this.landscape);
-    this.landscape.drawBaseMissiles(player1.missileCount, player2.missileCount);
+    this.background.drawShootingStars();
+    this.landscape.draw();
+    this.landscape.drawBaseMissiles();
     this.landscape.drawMissMarkers();
     this.landscape.updateScore();
     if (this.gameOver) this.background.doGameOver(this.landscape);
   }
 
   run() {
-    console.info("missileStatus...", missileStatus, this.gameOver);
+    // console.info("missileStatus...", missileStatus, this.gameOver);
+    // if (time == 1) missileStatus = INACTIVE;
     if (missileStatus == ACTIVE) {
       // console.info("RUN...");
       this.drawScreen();
@@ -969,18 +1095,22 @@ class NukedEmGame {
         case AWAITING_FIRE:
           break;
         default:
-          this.missile.update();
+          this.missile.update(this.landscape);
           this.missile.drawPath();
       }
     } else if (missileStatus == INACTIVE) {
       this.drawScreen();
-    } else {
+    } else if (missileStatus == HIT) {
       //Do nothing until next missile.
+    } else {
+      this.drawScreen();
     }
     time += timerInterval;
   }
 }
 
+let player1 = new Player("", 1);
+let player2 = new Player("", 2);
 let nukedEm;
 
 function loadGame() {

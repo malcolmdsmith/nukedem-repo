@@ -16,7 +16,7 @@
         <div class="row">
           <label for="power">POWER</label>
           <!-- <input type="text" name="power" id="power" value="99.77" disabled /> -->
-          <span id="power">99.77</span>
+          <span id="power">101.11</span>
           <button id="increasePower">⬆️</button>
           <button id="decreasePower">⬇️</button>
         </div>
@@ -47,11 +47,11 @@
     <div id="players-container">
       <div>
         <label for="player1">Player 1</label>
-        <input name="player1" id="player1" class="player-name" value="MAL" />
+        <input name="player1" id="player1" class="player-name" value="JIM" />
       </div>
       <div>
         <label for="player2">Player 2</label>
-        <input name="player2" id="player2" class="player-name" value="WAZ" />
+        <input name="player2" id="player2" class="player-name" value="JOE" />
       </div>
       <button id="start">PLAY</button>
     </div>
@@ -60,6 +60,10 @@
       id="explosion-sound"
       loop="none"
     ></audio>
+    <video id="flames" width="50px" height="58px" autoplay="autoplay" loop>
+      <source src="./assets/images/flames.mp4" type="video/mp4" />
+    </video>
+
     <script src="lib/number-pad.js"></script>
     <script src="lib/script.js"></script>
     <script>
