@@ -42,7 +42,7 @@ const AWAITING_FIRE = 6;
 const ACTIVE = 1;
 const INACTIVE = 0;
 
-const ANIMATION_LENGTH = 8000;
+const ANIMATION_LENGTH = 3000;
 
 const MINIMUM_BASE_DISTANCE = 80;
 
@@ -157,8 +157,7 @@ class NukedEmBase {
   points;
   player;
   missileBase;
-  baseNo;
-  baseStatus;
+  baseStatus = ACTIVE;
 
   constructor(x, y, x2, y2, fillColor, points, player, missileBase, baseNo) {
     this.X = x;
@@ -443,7 +442,7 @@ class Landscape {
   updateScore() {
     const player1Score = this.getScoreForPlayer(1);
     const player2Score = this.getScoreForPlayer(2);
-    let text = "Score " + player1Score + ":" + player2Score;
+    let text = "Score: " + player1Score + " - " + player2Score;
     const width = ctx.measureText(text).width;
     ctx.fillStyle = "black";
     ctx.font = "36px Arial";
@@ -472,14 +471,31 @@ class Landscape {
       20
     );
 
-    flames.style.top = base.Y - 58 + "px";
-    flames.style.left = base.X - 25 + "px";
+    this.createExplosion(base.X - 25, base.Y - 58);
+    //flames.style.top = base.Y - 58 + "px";
+    //flames.style.left = base.X - 25 + "px";
     //console.info(flames.style.display);
-    flames.style.display = "inline";
+    //flames.style.display = "block";
     let result = await this.explosionPause(3000);
-    flames.style.display = "none";
+    //flames.style.display = "none";
 
     base.baseStatus = DESTROYED;
+  }
+
+  createExplosion(x, y) {
+    const flames = document.createElement("video");
+    var sourceMP4 = document.createElement("source");
+    sourceMP4.type = "video/mp4";
+    sourceMP4.src = "assets/images/flames.mp4";
+    flames.appendChild(sourceMP4);
+    flames.autoplay = true;
+    flames.loop = true;
+    flames.style.position = "absolute";
+    flames.style.top = y + "px";
+    flames.style.left = x + "px";
+    flames.style.width = "50px";
+    flames.style.height = "58px";
+    document.body.appendChild(flames);
   }
 
   explosionPause(timeout) {
@@ -567,6 +583,8 @@ class Background {
     this.shootingStars.push(star);
     star = new ShootingStar(-1);
     this.shootingStars.push(star);
+    star = new ShootingStar(-1);
+    this.shootingStars.push(star);
   }
 
   drawShootingStars() {
@@ -596,23 +614,41 @@ class Background {
     console.info("anim", player, opponent);
     let phrases = new HitPhrases();
     let text = phrases.getPhrase(player, opponent);
+
+    const div = document.createElement("div");
+    div.style.width = canvas.width + "px";
+    div.style.height = canvas.height + "px";
+    div.style.position = "absolute";
+    div.style.left = "0px";
+    div.style.top = "0px";
+    div.innerText = text;
+    div.style.margin = "auto";
+    div.style.color = "#fff";
+    div.style.font = "40px Arial";
+    div.style.display = "flex";
+    div.style.justifyContent = "center";
+    div.style.alignItems = "center";
+    document.body.appendChild(div);
+
     const interval = setInterval(function () {
       r = Math.random() * 255;
       g = Math.random() * 255;
       b = Math.random() * 255;
-      ctx.fillStyle = `rgba(${r},${g},${b}, 0.2)`;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = "white";
-      ctx.font = "40px Arial";
-      ctx.fillText(
-        text,
-        canvas.width / 2 - ctx.measureText(text).width / 2,
-        canvas.height / 2
-      );
+      div.style.backgroundColor = `rgba(${r},${g},${b}, 0.7)`;
+      // ctx.fillStyle = `rgba(${r},${g},${b}, 0.2)`;
+      // ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // ctx.fillStyle = "white";
+      // ctx.font = "40px Arial";
+      // ctx.fillText(
+      // text,
+      // canvas.width / 2 - ctx.measureText(text).width / 2,
+      // canvas.height / 2
+      // );
     }, 300);
 
     setTimeout(function () {
       clearInterval(interval);
+      document.body.removeChild(div);
       drawScreen();
     }, ANIMATION_LENGTH);
   }
@@ -684,9 +720,9 @@ class Missile {
     let vx = this.power * Math.cos(rad);
     let vy = this.power * Math.sin(rad);
 
-    let vxWindVelocity = 0; //Math.cos(rad) * Math.abs(windVelocity) * 0.74;
-    let vyWindVelocity = 0; //Math.sin(rad) * Math.abs(windVelocity) * 0.74 - 10;
-
+    let vxWindVelocity = Math.cos(rad) * Math.abs(windVelocity) * 0.74;
+    let vyWindVelocity = Math.sin(rad) * Math.abs(windVelocity) * 0.74 - 10;
+    console.info(vxWindVelocity, vyWindVelocity);
     let x = vx * time;
 
     if (this.playerTurn == 1) {
@@ -910,16 +946,13 @@ class NukedEmGame {
     console.info("NEW GAME...");
     time = 0;
     missileStatus = ACTIVE;
-    //this.fireMissile(99.9, 60, 0);
-    // this.showPowerAnglePad("block");
-    // animate();
   }
 
   getPlayers() {
-    // player1 = new Player("", 1);
-    // player2 = new Player("", 2);
-
     const start = document.getElementById("start");
+    const container = document.getElementById("players-container");
+    container.style.left = canvas.width / 2 - 130 + "px";
+    container.style.display = "flex";
     start.addEventListener("click", function () {
       const txtplayer1 = document.getElementById("player1");
       const txtplayer2 = document.getElementById("player2");
@@ -932,7 +965,6 @@ class NukedEmGame {
       player1.playerName = txtplayer1.value;
       player2.playerName = txtplayer2.value;
 
-      const container = document.getElementById("players-container");
       container.style.display = "none";
       nukedEm.showPowerAnglePad("block");
       nukedEm.newGame();
@@ -1001,26 +1033,40 @@ class NukedEmGame {
       base.player == 1 ? player1.playerName : player2.playerName;
 
     this.showPowerAnglePad("none");
-    // const interval = setInterval(() => {
-    // }, 3000)
 
     this.landscape.drawExplosion();
     var that = this;
     setTimeout(function () {
-      //  clearInterval(interval);
       that.background.hitAnimation(
         () => {
           that.drawScreen();
           that.isGameOver();
           missileStatus = INACTIVE;
-          if (!that.gameOver) that.showPowerAnglePad("block");
+          if (!that.checkForLaunchBaseDestroyed()) {
+            if (!that.gameOver) that.showPowerAnglePad("block");
+          }
         },
         playerName,
         opponentName
       );
-    }, 3000);
+    }, 1500);
 
     this.landscape.drawBaseMissiles(player1.missiles, player2.missiles);
+  }
+
+  checkForLaunchBaseDestroyed() {
+    const launchBase = this.landscape.nukedEmBases.filter(
+      (f) => f.player == this.playersTurn && f.baseStatus == DESTROYED
+    );
+    if (launchBase) {
+      const bases = this.landscape.nukedEmBases.filter(
+        (f) => f.player == this.playersTurn
+      );
+      console.info(bases);
+      showLauncherSelectionPad(bases);
+      return true;
+    }
+    return false;
   }
 
   isGameOver() {

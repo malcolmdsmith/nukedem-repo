@@ -138,3 +138,52 @@ const decreaseAngle = document.getElementById("decreaseAngle");
 decreaseAngle.addEventListener("click", function () {
   angle.innerText = parseInt(angle.innerText) - 1;
 });
+
+let divLaunch;
+function showLauncherSelectionPad(bases) {
+  console.info(bases);
+  divLaunch = document.createElement("div");
+  document.body.appendChild(divLaunch);
+  divLaunch.style.position = "absolute";
+  divLaunch.style.backgroundColor = "#fff";
+  divLaunch.style.width = "250px";
+  divLaunch.style.height = "150px";
+  divLaunch.style.position = "absolute";
+  divLaunch.style.left = canvas.width / 2 - 125 + "px";
+  divLaunch.style.top = canvas.height / 2 - 50 + "px";
+  divLaunch.style.borderRadius = "20px";
+  divLaunch.style.border = "double black";
+  divLaunch.style.display = "flex";
+  divLaunch.style.flexDirection = "column";
+  divLaunch.style.alignItems = "center";
+  divLaunch.style.padding = "20px";
+  const title = document.createElement("h4");
+  const text = "Your launch base has been destroyed, pick a new base?";
+  title.innerText = text;
+  divLaunch.appendChild(title);
+
+  bases.forEach((base) => {
+    if (base.baseStatus != DESTROYED) {
+      const button = document.createElement("button");
+      button.style.backgroundColor = base.fillColor;
+      button.style.width = "150px";
+      button.style.height = "50px";
+      button.style.border = "none";
+      button.style.borderRadius = "10px";
+      button.style.margin = "5px";
+      button.innerText = base.points + "pts";
+      button.addEventListener("click", () => {
+        doBaseLaunchSelection(base);
+      });
+      divLaunch.appendChild(button);
+    } else base.missileBase = false;
+  });
+}
+
+function doBaseLaunchSelection(base) {
+  document.body.removeChild(divLaunch);
+
+  base.missileBase = true;
+
+  nukedEm.showPowerAnglePad("block");
+}
