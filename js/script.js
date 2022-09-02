@@ -47,6 +47,7 @@ const ANIMATION_LENGTH = 3000;
 const MINIMUM_BASE_DISTANCE = 80;
 
 const BASEWIDTH = 20;
+const NUMBER_ROUNDS = 3;
 
 let maxStars = 300;
 let stars = [];
@@ -57,6 +58,8 @@ let gameFrame = 0;
 const staggerFrames = 155;
 let windVelocity = 100;
 let missileStatus = 1;
+let playersTurn = 1;
+let round = 1;
 
 class HitPhrases {
   hitPhrases = new Array();
@@ -138,11 +141,13 @@ class ShootingStar {
 
 class NukedEmBaseType {
   fillColor;
+  captionColor;
   points;
   missileBase;
 
-  constructor(fillColor, points, missileBase) {
+  constructor(fillColor, captionColor, points, missileBase) {
     this.fillColor = fillColor;
+    this.captionColor = captionColor;
     this.points = points;
     this.missileBase = missileBase;
   }
@@ -154,17 +159,30 @@ class NukedEmBase {
   X2;
   Y2;
   fillColor;
+  captionColor;
   points;
   player;
   missileBase;
   baseStatus = ACTIVE;
 
-  constructor(x, y, x2, y2, fillColor, points, player, missileBase, baseNo) {
+  constructor(
+    x,
+    y,
+    x2,
+    y2,
+    fillColor,
+    captionColor,
+    points,
+    player,
+    missileBase,
+    baseNo
+  ) {
     this.X = x;
     this.Y = y;
     this.X2 = x2;
     this.Y2 = y2;
     this.fillColor = fillColor;
+    this.captionColor = captionColor;
     this.points = points;
     this.player = player;
     this.missileBase = missileBase;
@@ -191,18 +209,21 @@ class Landscape {
   createBaseTypes() {
     let baseType = new NukedEmBaseType();
     baseType.fillColor = "red";
+    baseType.captionColor = "white";
     baseType.points = 100;
-    baseType.missileBase = true;
+    baseType.missileBase = false;
     this.nukedEmBaseTypes.push(baseType);
 
     baseType = new NukedEmBaseType();
     baseType.fillColor = "yellow";
+    baseType.captionColor = "black";
     baseType.points = 70;
     baseType.missileBase = false;
     this.nukedEmBaseTypes.push(baseType);
 
     baseType = new NukedEmBaseType();
     baseType.fillColor = "blue";
+    baseType.captionColor = "white";
     baseType.points = 40;
     baseType.missileBase = false;
     this.nukedEmBaseTypes.push(baseType);
@@ -264,6 +285,7 @@ class Landscape {
       x2,
       y2,
       baseType.fillColor,
+      baseType.captionColor,
       baseType.points,
       player,
       baseType.missileBase
@@ -351,6 +373,13 @@ class Landscape {
       return true;
 
     return false;
+  }
+
+  playerHasNoLaunchBase(player) {
+    const bases = this.nukedEmBases.filter(
+      (f) => f.player == player && f.missileBase == true
+    );
+    return bases.length == 0;
   }
 
   checkMinimumDistanceBetweenBases(x, player) {
@@ -442,8 +471,17 @@ class Landscape {
   updateScore() {
     const player1Score = this.getScoreForPlayer(1);
     const player2Score = this.getScoreForPlayer(2);
-    let text = "Score: " + player1Score + " - " + player2Score;
-    const width = ctx.measureText(text).width;
+
+    let text = "ROUND " + round;
+    let width = ctx.measureText(text).width;
+    ctx.fillStyle = "black";
+    ctx.font = "36px Arial";
+    ctx.fillText(text, canvas.width / 2 - width / 2, canvas.height - 80);
+    ctx.fillStyle = "white";
+    ctx.fillText(text, canvas.width / 2 - width / 2 - 2, canvas.height - 82);
+
+    text = "Score: " + player1Score + " - " + player2Score;
+    width = ctx.measureText(text).width;
     ctx.fillStyle = "black";
     ctx.font = "36px Arial";
     ctx.fillText(text, canvas.width / 2 - width / 2, canvas.height - 40);
@@ -720,9 +758,9 @@ class Missile {
     let vx = this.power * Math.cos(rad);
     let vy = this.power * Math.sin(rad);
 
-    let vxWindVelocity = Math.cos(rad) * Math.abs(windVelocity) * 0.74;
-    let vyWindVelocity = Math.sin(rad) * Math.abs(windVelocity) * 0.74 - 10;
-    console.info(vxWindVelocity, vyWindVelocity);
+    let vxWindVelocity = 0; //Math.cos(rad) * Math.abs(windVelocity) * 0.74;
+    let vyWindVelocity = 0; //Math.sin(rad) * Math.abs(windVelocity) * 0.74 - 10;
+    // console.info(vxWindVelocity, vyWindVelocity);
     let x = vx * time;
 
     if (this.playerTurn == 1) {
@@ -767,13 +805,19 @@ class Missile {
     for (let i = 0; i < landscape.nukedEmBases.length; i++) {
       base = landscape.nukedEmBases[i];
 
+      // if (base.baseStatus != DESTROYED) {
+      //   const path = new Path2D();
+      //   path.moveTo(this.prevX, this.prevY);
+      //   path.lineTo(this.missileX, this.missileY);
+      //   path.closePath();
+      //   const baseData = { radius: BASEWIDTH / 2, x: base.X, y: base.Y };
+      //   if (this.isBaseInPath(baseData, path)) {
+      //     base.baseStatus = HIT;
+      //     return HIT;
+      //   }
+      // }
       if (base.baseStatus != DESTROYED) {
-        const path = new Path2D();
-        path.moveTo(this.prevX, this.prevY);
-        path.lineTo(this.missileX, this.missileY);
-        path.closePath();
-        const baseData = { radius: BASEWIDTH / 2, x: base.X, y: base.Y };
-        if (this.isBaseInPath(baseData, path)) {
+        if (this.isBaseHit(base)) {
           base.baseStatus = HIT;
           return HIT;
         }
@@ -821,6 +865,74 @@ class Missile {
         // console.info("x:", x, " y:", y);
         if (ctx.isPointInPath(path, x, y)) return true;
       }
+    }
+    return false;
+  }
+
+  isBaseHit(base) {
+    const path = new Path2D();
+    path.moveTo(this.prevX, this.prevY);
+    path.lineTo(this.missileX, this.missileY);
+    path.closePath();
+
+    //TOP OF BASE
+    let x1 = base.X - BASEWIDTH / 2;
+    let x2 = base.X + BASEWIDTH / 2;
+    let y1 = base.Y - BASEWIDTH / 2;
+    let y2 = base.Y - BASEWIDTH / 2;
+    if (
+      this.doesLineCrossLine(
+        this.prevX,
+        this.prevY,
+        this.missileX,
+        this.missileY,
+        x1,
+        y1,
+        x2,
+        y2
+      )
+    ) {
+      return true;
+    }
+
+    //LEFT SIDE OF BASE
+    x1 = base.X - BASEWIDTH / 2;
+    y1 = base.Y;
+    x2 = base.X - BASEWIDTH / 2;
+    y2 = base.Y - BASEWIDTH / 2;
+    if (
+      this.doesLineCrossLine(
+        this.prevX,
+        this.prevY,
+        this.missileX,
+        this.missileY,
+        x1,
+        y1,
+        x2,
+        y2
+      )
+    ) {
+      return true;
+    }
+
+    //RIGHT SIDE OF BASE
+    x1 = base.X - BASEWIDTH / 2;
+    y1 = base.Y;
+    x2 = base.X - BASEWIDTH / 2;
+    y2 = base.Y - BASEWIDTH / 2;
+    if (
+      this.doesLineCrossLine(
+        this.prevX,
+        this.prevY,
+        this.missileX,
+        this.missileY,
+        x1,
+        y1,
+        x2,
+        y2
+      )
+    ) {
+      return true;
     }
     return false;
   }
@@ -928,7 +1040,6 @@ class Player {
 
 class NukedEmGame {
   missile;
-  playersTurn = 1;
   gameOver = false;
   numMissiles = 0;
   demoMode = true;
@@ -946,6 +1057,9 @@ class NukedEmGame {
     console.info("NEW GAME...");
     time = 0;
     missileStatus = ACTIVE;
+    gameStart = true;
+    round = 1;
+    showLauncherSelectionPad(this.landscape.nukedEmBases, 1);
   }
 
   getPlayers() {
@@ -966,23 +1080,33 @@ class NukedEmGame {
       player2.playerName = txtplayer2.value;
 
       container.style.display = "none";
-      nukedEm.showPowerAnglePad("block");
       nukedEm.newGame();
     });
   }
 
   alternateTurn() {
-    if (this.playersTurn == 1) this.playersTurn = 2;
-    else this.playersTurn = 1;
+    if (playersTurn == 1) playersTurn = 2;
+    else playersTurn = 1;
   }
 
   showPowerAnglePad(display) {
-    // console.info("getPowerAngle....", this.playersTurn);
+    if (gameStart) {
+      showLauncherSelectionPad(this.landscape.nukedEmBases, 2);
+      gameStart = false;
+      return;
+    }
+
+    if (this.landscape.playerHasNoLaunchBase(playersTurn)) {
+      showLauncherSelectionPad(this.landscape.nukedEmBases, playersTurn);
+      return;
+    }
+
+    setPlayerValues();
     clear_power_values = true;
     clear_angle_values = true;
     const controls = document.getElementById("controls-container");
     controls.style.display = display;
-    if (this.playersTurn == 1) controls.style.left = "100px";
+    if (playersTurn == 1) controls.style.left = "100px";
     else controls.style.left = canvas.width - 350 + "px";
   }
 
@@ -990,15 +1114,15 @@ class NukedEmGame {
     if (this.numMissiles == 0) {
       this.fireMissile(90, 65, 0);
     } else if (this.numMissiles == 1) {
-      this.playersTurn = 1;
+      playersTurn = 1;
       this.fireMissile(93.9, 50, 1);
     }
     this.numMissiles++;
   }
 
   fireMissile(power, angle, id) {
-    // console.info("fire", this.playersTurn);
-    if (this.playersTurn == 1) {
+    // console.info("fire", playersTurn);
+    if (playersTurn == 1) {
       player1.reduceMissiles(1);
 
       this.missile = new Missile(
@@ -1056,14 +1180,10 @@ class NukedEmGame {
 
   checkForLaunchBaseDestroyed() {
     const launchBase = this.landscape.nukedEmBases.filter(
-      (f) => f.player == this.playersTurn && f.baseStatus == DESTROYED
+      (f) => f.player == playersTurn && f.baseStatus == DESTROYED
     );
     if (launchBase) {
-      const bases = this.landscape.nukedEmBases.filter(
-        (f) => f.player == this.playersTurn
-      );
-      console.info(bases);
-      showLauncherSelectionPad(bases);
+      showLauncherSelectionPad(this.landscape.nukedEmBases, playersTurn);
       return true;
     }
     return false;
@@ -1071,10 +1191,12 @@ class NukedEmGame {
 
   isGameOver() {
     if (player1.missileCount == 0 && player2.missileCount == 0) {
-      this.gameOver = true;
+      if (round == NUMBER_ROUNDS) this.gameOver = true;
+      else round += 1;
       return;
     } else if (this.landscape.areAllBasesDestroyed()) {
-      this.gameOver = true;
+      if (round == NUMBER_ROUNDS) this.gameOver = true;
+      else round += 1;
       return;
     }
   }
@@ -1088,7 +1210,7 @@ class NukedEmGame {
       // return;
     }
 
-    if (this.playersTurn == 1) {
+    if (playersTurn == 1) {
       if (player1.missileCount > 0) {
         this.fireMissile(power, angle, 0);
       }

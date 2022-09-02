@@ -103,11 +103,13 @@ body {
   padding: 30px;
   border-radius: 20px;
   border: double black;
-  background-color: #fff;
+  background-color: rgb(209, 187, 187);
 }
 
 .player-name {
   width: 150px;
+  text-align: center;
+  background-color: rgb(209, 187, 187);
 }
 
 #start {

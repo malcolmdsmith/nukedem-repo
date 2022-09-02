@@ -6,6 +6,19 @@ const angle = document.getElementById("angle");
 let clear_power_values = false;
 let clear_angle_values = false;
 
+let player1_Power = 101.12;
+let player1_Angle = 55;
+let player2_Power = 101.13;
+let player2_Angle = 56;
+
+function setPlayerValues() {
+  if (playersTurn == 1) power.innerText = player1_Power;
+  else power.innerText = player2_Power;
+
+  if (playersTurn == 1) angle.innerText = player1_Angle;
+  else angle.innerText = player2_Angle;
+}
+
 power.addEventListener("click", function () {
   power.style.backgroundColor = "rgb(0, 128, 0)";
   power.style.color = "rgb(255, 255, 255)";
@@ -109,6 +122,13 @@ period.addEventListener("click", function () {
 
 const fire = document.getElementById("fire");
 fire.addEventListener("click", function () {
+  if (playersTurn == 1) {
+    player1_Power = power.innerText;
+    player1_Angle = angle.innerText;
+  } else {
+    player2_Power = power.innerText;
+    player2_Angle = angle.innerText;
+  }
   nukedEm.nextMissile(power.innerText, angle.innerText);
 });
 
@@ -140,17 +160,21 @@ decreaseAngle.addEventListener("click", function () {
 });
 
 let divLaunch;
-function showLauncherSelectionPad(bases) {
-  console.info(bases);
+let gameStart;
+function showLauncherSelectionPad(bases, player) {
+  //console.info(bases);
+  const playerBases = bases.filter((f) => f.player == player);
   divLaunch = document.createElement("div");
   document.body.appendChild(divLaunch);
   divLaunch.style.position = "absolute";
-  divLaunch.style.backgroundColor = "#fff";
+  divLaunch.style.backgroundColor = "rgb(209, 187, 187)";
   divLaunch.style.width = "250px";
-  divLaunch.style.height = "150px";
+  divLaunch.style.height = "200px";
   divLaunch.style.position = "absolute";
-  divLaunch.style.left = canvas.width / 2 - 125 + "px";
-  divLaunch.style.top = canvas.height / 2 - 50 + "px";
+  if (player == 1) divLaunch.style.left = "100px";
+  //canvas.width / 2 - 125 + "px";
+  else divLaunch.style.right = "100px"; //canvas.width / 2 - 125 + "px";
+  divLaunch.style.top = "200px"; //canvas.height / 2 - 50 + "px";
   divLaunch.style.borderRadius = "20px";
   divLaunch.style.border = "double black";
   divLaunch.style.display = "flex";
@@ -158,17 +182,21 @@ function showLauncherSelectionPad(bases) {
   divLaunch.style.alignItems = "center";
   divLaunch.style.padding = "20px";
   const title = document.createElement("h4");
-  const text = "Your launch base has been destroyed, pick a new base?";
-  title.innerText = text;
+  let caption = "";
+  if (gameStart) caption = "Select your launch base?";
+  else caption = "Your launch base has been destroyed, pick a new base?";
+
+  title.innerText = caption;
   divLaunch.appendChild(title);
 
-  bases.forEach((base) => {
+  playerBases.forEach((base) => {
     if (base.baseStatus != DESTROYED) {
       const button = document.createElement("button");
       button.style.backgroundColor = base.fillColor;
+      button.style.color = base.captionColor;
       button.style.width = "150px";
-      button.style.height = "50px";
-      button.style.border = "none";
+      button.style.height = "60px";
+      button.style.border = "1px solid black";
       button.style.borderRadius = "10px";
       button.style.margin = "5px";
       button.innerText = base.points + "pts";
